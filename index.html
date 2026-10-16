@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OK Ejana Seva Kendra</title>
+<style>
+:root{--bg:#f2f5f7;--card:#fff;--ink:#14232b;--mute:#5b6b74;--teal:#0e5a5a;--gold:#f2a900;--line:#d9e1e6;--on-teal:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a1f;--card:#17262d;--ink:#e8f0f3;--mute:#9db0b8;--teal:#3fb0a8;--line:#27393f;--on-teal:#06201f;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans","Segoe UI",Roboto,Arial,sans-serif;padding-top:env(safe-area-inset-top,0)}
+header{position:sticky;top:0;background:var(--teal);color:var(--on-teal);display:flex;align-items:center;gap:12px;padding:12px 16px}
+header b{flex:1;font-size:18px}
+button,a.btn{font:inherit;border:0;border-radius:8px;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+.gold{background:var(--gold);color:#1b1500;font-weight:600}
+.ghost{background:transparent;color:inherit;border:1px solid currentColor}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+main{max-width:960px;margin:0 auto;padding:16px}
+h1{font-size:28px;line-height:1.2;margin:16px 0 8px}h2{margin:24px 0 8px;font-size:22px}
+p{color:var(--mute);max-width:60ch}
+input{font:inherit;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+label{display:block;margin:12px 0 4px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card h3{margin:0 0 4px;font-size:17px}.card p{margin:0;font-size:14px}
+.box{max-width:380px;margin:24px auto}
+.err{color:#c0392b;min-height:22px;font-size:14px}
+.hide{display:none}
+footer{text-align:center;color:var(--mute);padding:24px 16px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+<b>OK Ejana Seva Kendra</b>
+<a class="btn ghost" href="https://wa.me/918431186618" target="_blank" rel="noopener">WhatsApp</a>
+<button class="gold" id="agentBtn">Agent login</button>
+<button class="gold" id="outBtn" hidden>Logout</button>
+</header>
+<main>
+
+<section id="homeView">
+<h1>Government and digital services, in one counter</h1>
+<p>Ration card, PAN, Voter ID, certificates, scholarship and bank linking. Bring your documents or send them online.</p>
+<div class="grid" id="pgrid"></div>
+</section>
+
+<section id="loginView" class="hide">
+<div class="card box">
+<h2 style="margin-top:0">Agent login</h2>
+<form id="f">
+<label for="m">Mobile number</label>
+<input id="m" inputmode="numeric" maxlength="10" autocomplete="username" required>
+<label for="p">Password</label>
+<input id="p" type="password" autocomplete="current-password" required>
+<div class="err" id="err" role="alert"></div>
+<button class="gold" id="go" style="width:100%">Sign in</button>
+</form>
+<button type="button" class="ghost" id="toReg" style="width:100%;margin-top:12px;color:var(--ink)">New agent? Sign up</button>
+</div>
+</section>
+
+<section id="regView" class="hide">
+<div class="card box">
+<h2 style="margin-top:0">Agent sign up</h2>
+<form id="rf">
+<label for="rm">Mobile number</label>
+<input id="rm" inputmode="numeric" maxlength="10" autocomplete="username" required>
+<label for="rp">Create password (6 or more characters)</label>
+<input id="rp" type="password" autocomplete="new-password" required>
+<label for="rp2">Confirm password</label>
+<input id="rp2" type="password" autocomplete="new-password" required>
+<div class="err" id="rerr" role="alert"></div>
+<button class="gold" id="rgo" style="width:100%">Send OTP</button>
+</form>
+<form id="of" class="hide">
+<p style="margin:0">Enter the 6-digit OTP sent to your mobile number.</p>
+<label for="otp">OTP</label>
+<input id="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+<div class="err" id="oerr" role="alert"></div>
+<button class="gold" style="width:100%">Verify and sign up</button>
+</form>
+<div id="rc"></div>
+<button type="button" class="ghost" id="toLogin" style="width:100%;margin-top:12px;color:var(--ink)">Already an agent? Log in</button>
+</div>
+</section>
+
+<section id="dash" class="hide">
+<h1>Welcome, agent</h1>
+<p id="who"></p>
+<h2>Services</h2>
+<div class="grid" id="grid"></div>
+</section>
+
+</main>
+<footer>&copy; 2026 OK Ejana Seva Kendra</footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,RecaptchaVerifier,signInWithPhoneNumber,EmailAuthProvider,linkWithCredential} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+// STEP: paste your Firebase web app config here (see setup steps)
+const firebaseConfig={
+  apiKey:"PASTE_API_KEY",
+  authDomain:"PASTE_AUTH_DOMAIN",
+  projectId:"PASTE_PROJECT_ID",
+  appId:"PASTE_APP_ID"
+};
+
+const S=[["Ration Card Print","Search, verify and print Karnataka ration cards."],
+["PAN Card","Find PAN and print the card."],
+["Voter ID","Link mobile to Voter ID and print EPIC."],
+["Nadakacheri Services","Caste and income certificate prints and status."],
+["SSP Mobile Link","Link a mobile number to a student SSP ID."],
+["Bank Aadhaar Link (NPCI)","Link Aadhaar to bank and check status."],
+["LLR Exam Services","Learner's licence exam application and status."],
+["PDF and Image Studio","JPG to PDF, merge, compress and resize photos."]];
+
+const $=id=>document.getElementById(id);
+const app=initializeApp(firebaseConfig),auth=getAuth(app);
+// An agent's mobile number is turned into an email-style ID for Firebase
+const toEmail=m=>m+"@okseva.app";
+
+const cards=S.map(s=>"<div class='card'><h3>"+s[0]+"</h3><p>"+s[1]+"</p></div>").join("");$("grid").innerHTML=cards;$("pgrid").innerHTML=cards;
+
+$("f").addEventListener("submit",async e=>{
+  e.preventDefault();$("err").textContent="";
+  const m=$("m").value.trim();
+  if(!/^\d{10}$/.test(m)){$("err").textContent="Enter a 10-digit mobile number.";return}
+  $("go").disabled=true;
+  try{await signInWithEmailAndPassword(auth,toEmail(m),$("p").value)}
+  catch(x){$("err").textContent="Wrong mobile number or password."}
+  $("go").disabled=false;
+});
+$("outBtn").onclick=()=>signOut(auth);
+
+let registering=false,confirmation=null,verifier=null,pend={};
+function show(v){["homeView","loginView","regView","dash"].forEach(id=>$(id).classList.toggle("hide",id!==v))}
+function enter(u){$("outBtn").hidden=false;$("agentBtn").hidden=true;$("who").textContent="Signed in as "+u.email.replace("@okseva.app","");$("p").value="";show("dash")}
+
+$("agentBtn").onclick=()=>show("loginView");
+$("toReg").onclick=()=>show("regView");
+$("toLogin").onclick=()=>show("loginView");
+
+// Sign up step 1: send OTP to the mobile number
+$("rf").addEventListener("submit",async e=>{
+  e.preventDefault();$("rerr").textContent="";
+  const m=$("rm").value.trim(),pw=$("rp").value;
+  if(!/^\d{10}$/.test(m)){$("rerr").textContent="Enter a 10-digit mobile number.";return}
+  if(pw.length<6){$("rerr").textContent="Password must be 6 or more characters.";return}
+  if(pw!==$("rp2").value){$("rerr").textContent="Passwords do not match.";return}
+  if(firebaseConfig.apiKey.indexOf("PASTE")===0){$("rerr").textContent="Firebase is not set up yet. Paste your 4 Firebase config values into index.html.";return}
+  if(location.protocol==="file:"){$("rerr").textContent="Open this page from your hosted web address (https://), not from a file on the phone.";return}
+  $("rgo").disabled=true;
+  try{
+    if(!verifier)verifier=new RecaptchaVerifier(auth,"rc",{size:"invisible"});
+    confirmation=await signInWithPhoneNumber(auth,"+91"+m,verifier);
+    pend={m:m,pw:pw};
+    $("rf").classList.add("hide");$("of").classList.remove("hide");
+  }catch(x){
+    var c=(x&&x.code)||"unknown",M={
+      "auth/operation-not-allowed":"Phone sign-in is not turned on in Firebase (Authentication > Sign-in method > Phone).",
+      "auth/unauthorized-domain":"This web address is not allowed. Add it in Firebase > Authentication > Settings > Authorized domains.",
+      "auth/billing-not-enabled":"Firebase needs the pay-as-you-go (Blaze) plan to send real SMS. Or use a test phone number.",
+      "auth/invalid-phone-number":"This mobile number is not valid.",
+      "auth/too-many-requests":"Too many tries. Wait a while and try again.",
+      "auth/captcha-check-failed":"Security check failed. Refresh the page and try again.",
+      "auth/invalid-api-key":"The Firebase apiKey in index.html is wrong."};
+    $("rerr").textContent=(M[c]||"Could not send OTP.")+" ("+c+")";
+    try{verifier&&verifier.clear()}catch(y){}verifier=null;
+  }
+  $("rgo").disabled=false;
+});
+
+// Sign up step 2: check OTP, then attach the password to this mobile number
+$("of").addEventListener("submit",async e=>{
+  e.preventDefault();$("oerr").textContent="";registering=true;
+  try{
+    const r=await confirmation.confirm($("otp").value.trim());
+    try{await linkWithCredential(r.user,EmailAuthProvider.credential(toEmail(pend.m),pend.pw))}
+    catch(x){await signOut(auth);registering=false;$("oerr").textContent="This number is already registered. Please log in.";return}
+    registering=false;pend={};enter(r.user);
+  }catch(x){registering=false;$("oerr").textContent="Wrong OTP. Try again."}
+});
+
+onAuthStateChanged(auth,u=>{
+  if(registering)return;
+  if(u&&u.email)enter(u);
+  else{$("outBtn").hidden=true;$("agentBtn").hidden=false;if(!["loginView","regView"].some(id=>!$(id).classList.contains("hide")))show("homeView")}
+});
+</script>
+</body>
+</html>
